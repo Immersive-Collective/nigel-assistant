@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>xrFruitmania</title>
+    <title>Nigel Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/png">
 </head>
 <body>
-    <h1>Welcome to xrFruitmania</h1>
-    <p>This is a battleground where Brandon and Sylwester will explore how two WebXR enthusiasts can collaborate and build their own experience.</p>
+    {% include 'nav.html' %}
+    <h1>Welcome to Nigel Assistant</h1>
+    <p>Let's have a fun with AI</p>
 </body>
 </html>

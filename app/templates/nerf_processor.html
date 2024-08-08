@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NERF Processor - Nigel Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.png') }}" type="image/png">
+</head>
+<body>
+    {% include 'nav.html' %}
+    <div class="message-box" id="message-box"></div>
+    <div class="container">
+        <div class="sidebar">
+            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="upload-form">
+                <input type="file" name="file">
+                <input type="submit" value="Upload">
+            </form>
+            <h2>Documents</h2>
+            <div class="cards">
+                {% for file in files %}
+                <div class="card">
+                    <a href="{{ url_for('uploaded_file', filename=file.name) }}" target="pdf-frame">{{ file.name }}</a><br>
+                    <span>ID: {{ file.id }}</span><br>
+                    <span>Date: {{ file.date }}</span><br>
+                    <button onclick="processFile('{{ file.name }}')">Process</button>
+                    {% if file.processed %}
+                    <button onclick="viewTxt('{{ file.name }}')">TXT</button>
+                    {% if file.ner_processed %}
+                    <button onclick="viewNer('{{ file.name }}')">NER</button>
+                    {% if file.summary_processed %}
+                    <button onclick="viewSummary('{{ file.name }}')">Summary</button>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="main-content">
+            <iframe name="pdf-frame" width="100%" height="600px"></iframe>
+        </div>
+    </div>
+    <script>
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.style.opacity = 1;
+            setTimeout(() => {
+                messageBox.style.opacity = 0;
+            }, 3000);
+        }
+
+        function processFile(filename) {
+            showMessage(`Processing ${filename} started`);
+            console.log(`Processing ${filename} started`);
+            fetch(`/process/${filename}`)
+                .then(response => {
+                    if (response.ok) {
+                        showMessage(`Processing ${filename} completed`);
+                        console.log(`Processing ${filename} completed`);
+                        location.reload();
+                    } else {
+                        response.text().then(text => {
+                            showMessage(`Processing ${filename} failed: ${text}`);
+                            console.error(`Processing ${filename} failed: ${text}`);
+                        });
+                    }
+                })
+                .catch(error => {
+                    showMessage(`Processing ${filename} encountered an error: ${error}`);
+                    console.error(`Processing ${filename} encountered an error: ${error}`);
+                });
+        }
+
+        function viewTxt(filename) {
+            const txtFilename = filename.replace('.pdf', '.txt');
+            document.querySelector('iframe[name="pdf-frame"]').src = `/documents/txt/${txtFilename}`;
+            showMessage(`Viewing text for ${filename}`);
+            console.log(`Viewing text for ${filename}`);
+        }
+
+        function viewNer(filename) {
+            const nerFilename = filename.replace('.pdf', '.json');
+            document.querySelector('iframe[name="pdf-frame"]').src = `/documents/ner/${nerFilename}`;
+            showMessage(`Viewing NER for ${filename}`);
+            console.log(`Viewing NER for ${filename}`);
+        }
+
+        function viewSummary(filename) {
+            const summaryFilename = filename.replace('.pdf', '.summary.txt');
+            document.querySelector('iframe[name="pdf-frame"]').src = `/documents/summary/${summaryFilename}`;
+            showMessage(`Viewing summary for ${filename}`);
+            console.log(`Viewing summary for ${filename}`);
+        }
+    </script>
+</body>
+</html>
